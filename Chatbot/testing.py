@@ -1,8 +1,13 @@
 from flask import Flask, jsonify,request
 from pymongo import MongoClient, errors
 from bson.json_util import dumps
+from flask_cors import CORS, cross_origin
+
+
+
 
 app = Flask(__name__)
+CORS(app)
 
 # MongoDB configuration
 try:
