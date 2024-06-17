@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Job Listings</title>
+</head>
+<body>
+    <h1>Job Listings</h1>
+    {% if job_data %}
+        <ul>
+        {% for job in job_data %}
+            <li>
+                <h2>{{ job['job_title'] }}</h2>
+                <p>Status: {{ job['status'] }}</p>
+                <p>Client: {{ job['client'] }}</p>
+                <p>Priority: {{ job['priority'] }}</p>
+                <p>Description: {{ job['job_description']|safe }}</p>
+                <p>Due Date: {{ job['due_date'] }}</p>
+                <!-- Add more fields as needed -->
+            </li>
+        {% endfor %}
+        </ul>
+    {% else %}
+        <p>No job data available</p>
+    {% endif %}
+</body>
+</html>
