@@ -6,7 +6,7 @@ app = Flask(__name__)
 
 # MongoDB configuration
 try:
-    client = MongoClient('mongodb://localhost:27017/')
+    client = MongoClient('mongodb+srv://ssdev:ssdev123@ssdev.us8prjv.mongodb.net/test')
     db = client['job_data']  # Replace with your database name
     collection = db['job']  # Replace with your collection name
     print("Connected to MongoDB successfully")
