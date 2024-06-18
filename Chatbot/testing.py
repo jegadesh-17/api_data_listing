@@ -1,22 +1,23 @@
-from flask import Flask, jsonify,request
+from flask import Flask, jsonify, request, send_from_directory
 from pymongo import MongoClient, errors
-from bson.json_util import dumps
-from flask_cors import CORS, cross_origin
+from bson.json_util import dumps, ObjectId
+from flask_cors import CORS
+import logging
 
-
-
-
-app = Flask(__name__)
+app = Flask(__name__, static_folder='Templates')
 CORS(app)
+
+# Configure logging
+logging.basicConfig(level=logging.DEBUG)
 
 # MongoDB configuration
 try:
     client = MongoClient('mongodb+srv://ssdev:ssdev123@ssdev.us8prjv.mongodb.net/test')
     db = client['job_data']  # Replace with your database name
     collection = db['job']  # Replace with your collection name
-    print("Connected to MongoDB successfully")
+    logging.debug("Connected to MongoDB successfully")
 except errors.ConnectionError as e:
-    print(f"Failed to connect to MongoDB: {e}")
+    logging.error(f"Failed to connect to MongoDB: {e}")
 
 # Initial job data
 job_data = {
@@ -42,35 +43,16 @@ job_data = {
 # Insert initial data into MongoDB
 try:
     collection.insert_one(job_data)
-    print("Initial job data inserted successfully")
+    logging.debug("Initial job data inserted successfully")
 except errors.PyMongoError as e:
-    print(f"Failed to insert initial job data: {e}")
+    logging.error(f"Failed to insert initial job data: {e}")
 
+# Route to serve index.html
 @app.route('/')
 def index():
-    # Retrieve all job data from MongoDB
-    try:
-        job_data = list(collection.find({}))
-        if job_data:
-            # Render the job data as an HTML string
-            html_content = '<h1>Job Listings</h1>'
-            html_content += '<ul>'
-            for job in job_data:
-                html_content += '<li>'
-                html_content += f'<h2>{job["job_title"]}</h2>'
-                html_content += f'<p>Status: {job["status"]}</p>'
-                html_content += f'<p>Client: {job["client"]}</p>'
-                html_content += f'<p>Priority: {job["priority"]}</p>'
-                html_content += f'<p>Description: {job["job_description"]}</p>'
-                html_content += f'<p>Due Date: {job["due_date"]}</p>'
-                html_content += '</li>'
-            html_content += '</ul>'
-            return html_content
-        else:
-            return "<h1>No job data available</h1>"
-    except errors.PyMongoError as e:
-        return f"<h1>Failed to retrieve job data: {e}</h1>"
+    return send_from_directory('Templates', 'index.html')
 
+# API endpoint to add a new job
 @app.route('/api/job', methods=['POST'])
 def add_job():
     try:
@@ -81,6 +63,7 @@ def add_job():
     except errors.PyMongoError as e:
         return jsonify({"success": False, "message": f"Failed to add job: {e}"}), 500
 
+# API endpoint to retrieve all jobs
 @app.route('/api/job', methods=['GET'])
 def get_jobs():
     try:
@@ -93,5 +76,28 @@ def get_jobs():
     except errors.PyMongoError as e:
         return jsonify({"error": f"Failed to retrieve jobs: {e}"}), 500
 
+# API endpoint to retrieve a specific job by ID
+@app.route('/api/job/<job_id>', methods=['GET'])
+def get_job(job_id):
+    try:
+        logging.debug(f"Fetching job with ID: {job_id}")
+        job = collection.find_one({"_id": ObjectId(job_id)})
+        if job:
+            logging.debug(f"Job details found: {job}")
+            return dumps(job), 200  # Return job details as JSON
+        else:
+            logging.debug(f"Job with ID {job_id} not found")
+            return jsonify({"error": "Job not found"}), 404
+    except errors.PyMongoError as e:
+        logging.error(f"Failed to retrieve job: {e}")
+        return jsonify({"error": f"Failed to retrieve job: {e}"}), 500
+
+# Route to serve job-details.html
+@app.route('/job-details.html')
+def job_details():
+    return app.send_static_file('job-details.html')
+
 if __name__ == '__main__':
     app.run(debug=True)
+
+
