@@ -1,5 +1,5 @@
 from flask import Flask, jsonify, request, send_from_directory
-from pymongo import MongoClient, errors
+from pymongo import MongoClient, errors,DESCENDING
 from bson.json_util import dumps, ObjectId
 from flask_cors import CORS
 import logging
@@ -68,7 +68,7 @@ def add_job():
 def get_jobs():
     try:
         # Retrieve all job data from MongoDB
-        job_data = list(collection.find({}))
+        job_data = list(collection.find({})).sort("_id", DESCENDING))
         if job_data:
             return dumps(job_data), 200
         else:
