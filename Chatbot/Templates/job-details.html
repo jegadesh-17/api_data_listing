@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Job Details</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        .job-details {
+            border: 1px solid #ddd;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        table, th, td {
+            border: 1px solid #ddd;
+        }
+        th, td {
+            padding: 10px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        .nav-bar {
+    width: 100%;
+    overflow: hidden; /* Clear floats */
+}
+
+.nav-bar {
+    width: 100%;
+    display: flex; /* Use flexbox for layout */
+    align-items: center; /* Center items vertically */
+    justify-content: space-between; /* Space items evenly */
+    background-color: #f2f2f2; /* Background color for the navbar */
+    padding: 10px; /* Add padding for spacing */
+}
+
+.job-heading {
+    margin: 0; /* Remove default margin */
+    padding: 10px; /* Add padding for spacing */
+}
+
+.back-btn {
+    width: 20%; 
+    height: 30px; 
+    background-color: yellowgreen;
+    border: none; 
+    text-align: center;
+    text-decoration: none; 
+    color: black; 
+    cursor: pointer;
+    margin-right: 20px;
+    padding-top: 10px;
+}
+
+.back-btn:hover {
+    background-color: lightgreen; 
+}
+    </style>
+</head>
+<body>
+    <div class="nav-bar">
+        <h1 class="job-heading">Job Details</h1>
+        <a href="/" class="back-btn">Back to Job Listings</a>
+    </div>
+    
+    <div class="job-details">
+        <table id="job-details-table"></table>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const params = new URLSearchParams(window.location.search);
+            const jobId = params.get('id');
+            console.log(jobId,"jobId")
+            fetch(`/api/job/${jobId}`)
+                .then(response => response.json())
+                .then(job => {
+                    const jobDetailsTable = document.getElementById('job-details-table');
+                    if (job) {
+                        jobDetailsTable.innerHTML = `
+                            <tr><th>Title</th><td>${job.job_title}</td></tr>
+                            <tr><th>Status</th><td>${job.status}</td></tr>
+                            <tr><th>Client</th><td>${job.client}</td></tr>
+                            <tr><th>Priority</th><td>${job.priority}</td></tr>
+                            <tr><th>Description</th><td>${job.job_description}</td></tr>
+                            <tr><th>Due Date</th><td>${new Date(job.due_date).toLocaleDateString()}</td></tr>
+                            <tr><th>Notice Period</th><td>${job.notice_period}</td></tr>
+                            <tr><th>Experience</th><td>${job.minimum_experience} - ${job.maximum_experience} years</td></tr>
+                            <tr><th>Mode of Hire</th><td>${job.mode_of_hire}</td></tr>
+                            <tr><th>Vendor Name</th><td>${job.vendor_name}</td></tr>
+                            <tr><th>POC Vendor</th><td>${job.poc_vendor}</td></tr>
+                            <tr><th>Job RR ID</th><td>${job.job_rr_id}</td></tr>
+                            <tr><th>Skillset</th><td>${job.skillset.map(skill => `${skill.skill} (${skill.exp} years)`).join(', ')}</td></tr>
+                        `;
+                    } else {
+                        jobDetailsTable.innerHTML = '<tr><td colspan="2">Job not found</td></tr>';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching job details:', error);
+                    const jobDetailsTable = document.getElementById('job-details-table');
+                    jobDetailsTable.innerHTML = '<tr><td colspan="2">Failed to load job details</td></tr>';
+                });
+        });
+    </script>
+</body>
+</html>
